@@ -8,7 +8,7 @@
  *   notifica l'utente e skippa il waiting automaticamente
  */
 
-const APP_VERSION = 'djapp-v2.1.0'
+const APP_VERSION = 'djapp-v1.7.0'
 const CACHE_NAME = `${APP_VERSION}`
 
 // Asset da pre-cachare (vengono aggiornati ad ogni build)
