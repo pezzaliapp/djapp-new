@@ -1,40 +1,50 @@
+---
+title: "djApp — Manuale d'uso"
+author: "Alessandro Pezzali — PezzaliApp"
+date: "17 aprile 2026"
+lang: it
+geometry:
+  - margin=2.2cm
+fontsize: 11pt
+mainfont: "Arial"
+monofont: "Courier New"
+---
+
 # djApp — Manuale d'uso
 
-**Versione documento:** 1.0
+**Versione documento:** 2.0 (riscritto su bundle verificato)
 **App:** djApp by PezzaliApp
 **URL produzione:** [https://www.alessandropezzali.it/djapp-new/](https://www.alessandropezzali.it/djapp-new/)
-**Autore:** Alessandro Pezzali — PezzaliApp
-**Ambito:** Uso completo su laptop (macOS, Windows) e mobile (Android, iPhone/iPad)
+**Stack:** React 18 + Vite 5 + Web Audio API + Zustand
+**Ambito:** Uso completo su macOS, Windows, Android, iPhone/iPad
 
 ---
 
 ## Indice
 
-1. [Cos'è djApp](#1-cosè-djapp)
-2. [Requisiti](#2-requisiti)
-3. [Installazione come PWA](#3-installazione-come-pwa)
-4. [Panoramica dell'interfaccia](#4-panoramica-dellinterfaccia)
-5. [Caricamento dei brani](#5-caricamento-dei-brani)
-6. [Deck A e Deck B — comandi completi](#6-deck-a-e-deck-b--comandi-completi)
-7. [Mixer centrale](#7-mixer-centrale)
-8. [Effetti — COLOR FX e BEAT FX](#8-effetti--color-fx-e-beat-fx)
-9. [Pannello Beatmatch (overlay)](#9-pannello-beatmatch-overlay)
-10. [Registratore WAV (overlay)](#10-registratore-wav-overlay)
-11. [Scorciatoie da tastiera](#11-scorciatoie-da-tastiera)
-12. [Workflow completo — mixare due brani](#12-workflow-completo--mixare-due-brani)
-13. [Uso su mobile](#13-uso-su-mobile)
-14. [Risoluzione problemi](#14-risoluzione-problemi)
-15. [Note tecniche](#15-note-tecniche)
+1. Cos'è djApp
+2. Requisiti
+3. Installazione come PWA
+4. Panoramica dell'interfaccia
+5. Caricamento dei brani
+6. Deck A e Deck B — comandi completi
+7. Mixer centrale
+8. Effetti — COLOR FX e BEAT FX
+9. Scorciatoie da tastiera
+10. Overlay aggiuntivi — Recorder WAV e Beatmatch
+11. Workflow completo — mixare due brani
+12. Uso su mobile
+13. Auto-aggiornamento PWA
+14. Risoluzione problemi
+15. Note tecniche
 
 ---
 
 ## 1. Cos'è djApp
 
-djApp è un'applicazione web per il mixaggio di due tracce audio in tempo reale, pensata per girare **direttamente nel browser** senza plugin, senza download di software, senza account. Funziona come una consolle DJ a due deck con mixer centrale, equalizzazione a 3 bande per canale, crossfader, catena di effetti e analisi automatica del BPM.
+djApp è un'applicazione web per il mixaggio di due tracce audio in tempo reale, che gira direttamente nel browser senza plugin. È una **Progressive Web App (PWA)** installabile su macOS, Windows, Android e iOS, con interfaccia a due deck, mixer centrale con EQ 3 bande per canale, crossfader, catena di effetti (COLOR FX + BEAT FX), hot cue, loop engine, sync automatico con allineamento di fase, e analisi BPM automatica via worker dedicato.
 
-È una **Progressive Web App (PWA)**: può essere installata su macOS, Windows, Android e iOS e comportarsi come un'app nativa (icona nel launcher, finestra dedicata, funzionamento offline dell'interfaccia).
-
-È costruita sopra la Web Audio API e la grafica React. Due overlay aggiuntivi — **Recorder WAV** e **Beatmatch** — estendono le funzioni base con registrazione del mix in WAV PCM stereo 16-bit e sincronizzazione automatica del tempo tra i due deck.
+Costruita sopra la Web Audio API nativa. Nessun account, nessun tracking, i brani restano sul dispositivo.
 
 ---
 
@@ -44,630 +54,533 @@ djApp è un'applicazione web per il mixaggio di due tracce audio in tempo reale,
 
 | Piattaforma | Browser consigliato | Note |
 |---|---|---|
-| macOS | Chrome (ultima versione) | Esperienza piena, installazione PWA nativa |
-| macOS | Safari 17+ | Funziona, installazione PWA via "Aggiungi al Dock" |
+| macOS | Chrome (ultima versione) | Esperienza piena, install PWA nativa |
+| macOS | Safari 17+ | Funziona, install via "Aggiungi al Dock" |
 | Windows | Chrome, Edge | Esperienza piena |
-| Android | Chrome | Esperienza piena |
-| iPhone/iPad | Safari | Obbligatorio per PWA su iOS |
+| Android | Chrome | Esperienza piena, PWA full-screen |
+| iPhone/iPad | Safari | Obbligatorio (Chrome iOS = Safari sotto) |
 
-### 2.2 Connessione
+### 2.2 Connessione e dispositivo
 
-- **Prima apertura**: serve connessione internet (si scarica l'app)
-- **Uso successivo**: l'interfaccia funziona offline grazie al Service Worker. I brani però vanno caricati localmente dal tuo dispositivo
-- **HTTPS**: djApp gira solo su https. I deploy su Cloudflare Pages / GitHub Pages sono già HTTPS di default
+- **Prima apertura**: serve internet (si scarica il bundle)
+- **Uso successivo**: l'interfaccia funziona offline (Service Worker). I brani si caricano localmente
+- **HTTPS obbligatorio** per l'AudioContext
+- **Cuffie consigliate** per il monitoraggio
 
-### 2.3 Hardware
+### 2.3 Limiti hardware browser
 
-- CPU dual-core o superiore
-- **Cuffie**: fortemente consigliate per il monitoraggio pre-fader in produzione
-- Scheda audio stereo standard integrata
-- Latenza audio dipendente dal browser: 20-40 ms su Chrome, 40-80 ms su Safari
+Su **iOS Safari** il `playbackRate` è limitato dal browser all'intervallo **[0.5, 4.0]**: scratch estremi oltre questi limiti vengono clampati automaticamente. Il resto delle piattaforme non ha questo limite.
 
 ---
 
 ## 3. Installazione come PWA
 
-Installare djApp come app ha 3 vantaggi: l'icona sta nel launcher come qualsiasi altra app, si apre in finestra pulita senza la barra del browser, e continua a funzionare anche in modalità aereo (serve solo al momento del caricamento iniziale dell'interfaccia).
-
 ### 3.1 macOS — Chrome
 
 1. Apri Chrome e vai su `https://www.alessandropezzali.it/djapp-new/`
-2. Attendi il caricamento completo della pagina
-3. Nella barra degli indirizzi, sul lato destro, cerca **l'icona monitor con freccia ⊕** (tooltip "Installa djApp")
-4. Click sull'icona → conferma con **"Installa"**
-5. djApp apparirà in `/Applicazioni/Chrome Apps/` e in Launchpad
-6. Per disinstallare: tasto destro sull'icona in Dock o Launchpad → "Rimuovi"
+2. Attendi il caricamento completo
+3. Sul lato destro della barra indirizzi, icona **monitor con freccia ⊕** ("Installa djApp")
+4. Click → **Installa**
+5. L'app appare in `/Applicazioni/` e in Launchpad
 
-**Metodo alternativo tramite menu:**
-
-- Click sui tre puntini verticali ⋮ in alto a destra
-- `Trasmetti, salva e condividi` → `Installa pagina come app...`
-- Scegli il nome → `Installa`
+Menu alternativo: tre puntini ⋮ → `Trasmetti, salva e condividi` → `Installa pagina come app...`
 
 ### 3.2 macOS — Safari
 
-1. Apri Safari e vai su djApp
-2. Menu **File** → **Aggiungi al Dock...**
-3. Scegli nome e icona → `Aggiungi`
-4. L'app appare nel Dock e può essere trascinata nella cartella Applicazioni
+Menu **File** → **Aggiungi al Dock...** → scegli nome e icona → `Aggiungi`.
 
 ### 3.3 Windows — Chrome o Edge
 
-1. Apri il browser e vai su djApp
-2. Sul lato destro della barra indirizzi, icona **⊕** (Chrome) o **▢ con +** (Edge) → tooltip "Installa"
-3. Click → `Installa`
-4. djApp appare in Start Menu e come icona sul Desktop
-5. Puoi pinnare nella Taskbar con tasto destro → "Aggiungi alla barra delle applicazioni"
+Barra indirizzi, icona **⊕** → `Installa`. L'app appare in Start Menu.
 
 ### 3.4 Android — Chrome
 
-1. Apri Chrome su Android e vai su djApp
-2. Chrome mostra in basso un bottom-sheet **"Installa app"** (oppure menu ⋮ → "Installa app")
-3. Tocca → `Installa`
-4. L'icona appare in home screen e nel drawer app
-5. Si apre in modalità full-screen senza barra del browser
+Bottom-sheet automatico **"Installa app"** o menu ⋮ → **"Installa app"** → `Installa`.
 
 ### 3.5 iPhone / iPad — Safari
 
-**Obbligatorio usare Safari** (Chrome iOS non supporta l'installazione PWA — è Safari sotto il cofano con limitazioni).
-
-1. Apri Safari e vai su djApp
-2. Tocca l'icona **Condividi** (quadrato con freccia verso l'alto, nella barra in basso)
-3. Scorri il foglio verso il basso fino a **"Aggiungi alla schermata Home"**
-4. Tocca → scegli il nome → **Aggiungi**
-5. L'icona compare in home. Apertura a tutto schermo, senza barra indirizzi
-
-**Limitazioni iOS**: Safari non supporta AudioWorklet in modo completo come Chrome. Il recorder WAV può avere qualità leggermente inferiore. Per DJ set seri su iOS è meglio usare un iPad con iPadOS 17+.
+Icona **Condividi** (quadrato + freccia in alto) → scroll in basso → **"Aggiungi alla schermata Home"** → `Aggiungi`.
 
 ---
 
 ## 4. Panoramica dell'interfaccia
 
-L'interfaccia è divisa in **5 zone principali**, dall'alto verso il basso:
+### 4.1 Layout desktop
 
-1. **Header** (in alto): logo djApp, indicatore `● READY` che diventa verde quando l'AudioContext è attivo
-2. **Waveform Overview** (sotto l'header): due forme d'onda affiancate — deck A in blu a sinistra, deck B in verde a destra, con indicatore `30s/120s` per lo zoom temporale
-3. **Deck A | Mixer | Deck B** (zona centrale, 3 colonne):
-   - Deck A a sinistra con jog wheel, pitch, cue, loop
-   - Mixer al centro con BPM, PHASE, EQ per canale, crossfader
-   - Deck B a destra, speculare al A
-4. **Barra effetti** (sotto i deck): `COLOR FX` a sinistra, `BEAT FX` a destra
-5. **Library** (in basso): campo di ricerca, pulsante `+ IMPORT`, area drop files
+Cinque zone dall'alto in basso:
 
-**Overlay attivi** (si sovrappongono all'interfaccia):
+1. **Header**: logo `djApp · by PezzaliApp` a sinistra, indicatore `● READY` a destra (si accende quando l'AudioContext è pronto)
+2. **Waveform Overview**: forme d'onda dei due deck affiancate (A blu, B verde), con zoom temporale indicato (es. `30s`, `120s`)
+3. **Zona performance** (centrale): 3 colonne — Deck A a sinistra, Mixer al centro, Deck B a destra
+4. **Barra effetti**: COLOR FX a sinistra, BEAT FX a destra
+5. **Library**: campo di ricerca tracce, pulsante `+ IMPORT`, area drop-files
 
-- **Pannello Beatmatch** — posizionabile via drag, collassabile. Mostra BPM effettivi e pulsanti SYNC
-- **Pill Recorder** — in basso a destra, mostra timer e pulsante REC/STOP
+### 4.2 Layout mobile
+
+Su schermi stretti appaiono **tab di navigazione** in basso (verificate nel bundle):
+
+- `◉ DECK A`
+- `⇌ MIXER`
+- `◉ DECK B`
+- `♪ LIBRARY`
+
+Si tocca la tab per mostrare solo quella sezione.
 
 ---
 
 ## 5. Caricamento dei brani
 
-Ci sono tre modi per caricare un brano in un deck.
-
 ### 5.1 Drag & drop
 
-Trascina un file audio dal Finder/Esplora risorse direttamente sulla waveform del deck A o B. Formati supportati: **MP3, WAV, M4A, AAC, FLAC, OGG, OPUS**.
+Trascina un file audio dal sistema direttamente sulla waveform del deck A o B. Qualsiasi formato decodificabile da `AudioContext.decodeAudioData` (MP3, WAV, M4A, AAC, FLAC, OGG dipendono dal browser).
 
 ### 5.2 Pulsante LOAD FILE
 
-Sotto ogni deck c'è il pulsante **`LOAD FILE`**. Click → si apre il file picker del sistema → scegli il brano.
+Pulsante **`LOAD FILE`** sotto ogni deck → file picker del sistema.
 
-### 5.3 Library
+Flusso tecnico verificato:
+1. Il file viene letto come `ArrayBuffer`
+2. `decodeAudioData` produce un `AudioBuffer`
+3. Il buffer viene assegnato al deck, reset di cursore e loop
+4. Il titolo del brano è il filename **senza estensione**
+5. L'artista è impostato a `"Local File"`
+6. Dopo 500 ms parte l'analisi BPM in un Web Worker dedicato
 
-Sotto i deck c'è la barra `Search tracks...` con pulsante `+ IMPORT`. Importa più brani in una sola volta; da lì puoi trascinarli sul deck A o B.
+### 5.3 Library + IMPORT
 
-### 5.4 Analisi automatica
+In basso nella zona LIBRARY: campo `Search tracks...`, pulsante **`+ IMPORT`** per aggiungere brani alla libreria interna. Ogni riga della libreria mostra titolo, artista, BPM e durata, e ha un pulsante **`×`** per rimuoverla.
 
-Appena caricato il brano, djApp:
+Doppio click su un brano della library → carica sul deck selezionato (con pulsante **`FROM LIBRARY`** del deck).
 
-- Disegna la waveform (blu per A, verde per B)
-- **Calcola il BPM** automaticamente (analisi onset detection sul worker)
-- Mostra durata totale e tempo rimanente nel display del deck
+### 5.4 Analisi BPM automatica
 
-Il BPM analizzato appare accanto al titolo e nel MIXER centrale. L'analisi dura 2-5 secondi per un brano da 4 minuti.
+L'analisi BPM **è reale e funzionante**. Algoritmo implementato:
+
+- Downsample del segnale audio per fattore 10
+- Calcolo dell'energia RMS a finestre brevi
+- **Autocorrelazione** tra offset corrispondenti a 60–200 BPM
+- Il lag con correlazione massima determina il BPM
+- Normalizzazione in intervallo 80–160 BPM (moltiplica o divide per 2 se fuori range)
+- Arrotondamento a 1 decimale
+
+Il BPM rilevato viene usato per: display, auto-loop, sync automatico, jump a beat.
 
 ---
 
 ## 6. Deck A e Deck B — comandi completi
 
-Ogni deck è composto da 7 blocchi di controllo. Di seguito la guida dettagliata.
+Ogni deck ha la seguente catena di controlli, verificata nel bundle.
 
-### 6.1 Jog wheel / NUDGE
+### 6.1 Track info e tempo
 
-Il grande disco con la lettera del deck ("A" o "B") al centro è il **jog wheel**, usato per il pitch-bend temporaneo.
+In alto: titolo del brano, artista, tempo corrente e **tempo rimanente** in formato `m:ss`, **BPM** con una decimale.
 
-- **Ruota in senso orario** → il deck **accelera** per la durata della rotazione (utile se il deck è in ritardo sull'altro)
-- **Ruota in senso antiorario** → il deck **rallenta** (utile se è in anticipo)
-- **Rilascia** → torna al tempo impostato dal PITCH slider
-- Il valore corrente di nudge è mostrato in gradi (es. `63°` o `-19°`) sotto la rotella
+### 6.2 Jog wheel — NUDGE / SCRATCH
 
-Il pulsante **`NUDGE`** sotto il jog abilita/disabilita la modalità fine. Con NUDGE attivo, ogni giro del jog corrisponde a un pitch-bend più dolce.
+Il grande disco circolare è il jog wheel, supportato da **mouse + touch multitouch** (due dita su iPhone su due jog diversi funzionano in parallelo grazie a `useMultitouch` che mappa ciascun touch al proprio deck tramite `elementFromPoint`).
 
-### 6.2 KEY (tonalità)
+Sotto il jog c'è un **pulsante toggle** che alterna tra due modalità:
 
-Sotto il jog: `KEY ♭ 0 ♯ M.TEMPO`
+- **`⟳ NUDGE`** (default): il jog fa pitch-bend temporaneo. Ruota in senso orario → accelerazione momentanea. Ruota antiorario → rallentamento momentaneo. Rilascio → torna al pitch impostato
+- **`⦿ SCRATCH`**: il jog diventa una superficie scratch — la riproduzione segue direttamente la posizione del gesto (implementato via manipolazione `playbackRate`, non AudioWorklet)
 
-- **♭ (bemolle)**: abbassa la tonalità di mezzo tono
-- **0**: tonalità originale (reset)
-- **♯ (diesis)**: alza di mezzo tono
-- **M.TEMPO** (Master Tempo): se attivo, cambiare il pitch **non** altera la tonalità del brano (pitch-shifting indipendente). Se disattivo, pitch e tonalità sono legati (il brano suona più acuto se acceleri)
+### 6.3 KEY shift
 
-> ⚠️ **Nota versione corrente**: KEY e M.TEMPO sono presenti come UI ma non attivi in questa build. Il pitch slider influenza attualmente sia tempo sia tonalità. Implementazione in roadmap.
+Sotto il jog-mode toggle: `KEY ♭ 0 ♯ M.TEMPO`
 
-### 6.3 SYNC (pulsante integrato)
+Verificato implementato:
 
-Il pulsante `⇌ SYNC` in UI serve per allineare automaticamente il deck al tempo dell'altro.
+- **`♭` (bemolle)**: abbassa la tonalità di 1 semitono (fino a **-6 semitoni**)
+- **`0`**: tonalità originale (reset — valore corrente visibile)
+- **`♯` (diesis)**: alza di 1 semitono (fino a **+6 semitoni**)
+- **`M.TEMPO`**: toggle Master Tempo. Quando attivo, le variazioni di KEY non alterano il tempo del brano; quando disattivo, pitch e tonalità sono accoppiate
 
-> ⚠️ **Nota versione corrente**: il pulsante SYNC integrato non è ancora cablato. Usa il **pannello Beatmatch overlay** (vedi [sezione 9](#9-pannello-beatmatch-overlay)) che ha due pulsanti `SYNC B→A` e `SYNC A→B` pienamente funzionanti.
+### 6.4 SYNC — implementato
 
-### 6.4 QUANTIZE
+Pulsante **`⇌ SYNC`**. Cablato a un handler reale:
 
-Il pulsante `+ QUANTIZE` forza gli eventi (CUE, loop IN/OUT, hot cue) a scattare sulla battuta successiva invece che sul momento esatto del click. Utile per i DJ principianti che vogliono loop perfetti.
+- Quando attivato: imposta l'altro deck come **master**, calcola il rapporto `BPM_master / BPM_this`, applica il `playbackRate` risultante
+- **In più esegue l'allineamento di fase**: confronta le posizioni dei due deck modulo la durata di un beat, calcola il delta di fase, lo corregge con un micro-nudge
+- Lo stato del pulsante diventa evidenziato quando sync è attivo
+- Secondo click: `unsyncDeck` — disattiva il sync per questo deck
 
-> ⚠️ **Nota versione corrente**: QUANTIZE è UI fittizia in questa build. In roadmap.
+### 6.5 QUANTIZE
 
-### 6.5 PITCH
+Pulsante **`◈ QUANTIZE`**. Cablato al flag `quantize` nello store. Quando attivo, forza gli eventi ritmici a scattare sul beat grid invece del momento esatto del click.
 
-Slider orizzontale con indicatore percentuale a destra (es. `+2.4%`, `-19.0%`).
+### 6.6 PITCH slider
 
-- Range: tipicamente **±8%, ±16%** o **±50%** secondo la modalità
-- **0%**: velocità originale del brano
-- **Positivo**: accelera (e il BPM reale aumenta)
-- **Negativo**: rallenta
+Slider orizzontale con percentuale a destra.
 
-Ad ogni variazione del pitch, il **`playbackRate`** del BufferSource cambia di conseguenza. Il BPM effettivo è sempre `BPM_originale × (1 + pitch/100)`. Nel display principale viene ora mostrato il valore aggiornato grazie all'overlay Beatmatch.
+Verificato nel bundle:
 
-### 6.6 Trasporto — CUE / PLAY / STOP
+- **Range**: `playbackRate` da `0.7` a `1.3`
+- **Step**: `0.001`
+- **Visualizzazione**: `±X.X%` dove `X = (playbackRate - 1) × 100`; quando a 1.0 esatto mostra `±0%`
+- Range percentuale effettivo: **da -30% a +30%**
+
+### 6.7 Trasporto — CUE / PLAY / STOP
 
 Tre pulsanti sotto il PITCH:
 
-- **`CUE`**: porta il cursore al cue point (di default: l'inizio del brano). Premendolo di nuovo in play esegue preview fino a rilascio
-- **`▶ PLAY`**: avvia la riproduzione dal cursore corrente. Durante il play il pulsante diventa `⏸ PAUSE`
-- **`■ STOP`**: ferma la riproduzione e riporta al cue point
+- **`CUE`**: funziona **a pressione**
+  - `mousedown` / `touchstart` → va al cue point e riproduce
+  - `mouseup` / `touchend` → torna in pausa
+  - Colore evidenziato quando `cuePoint > 0`
+- **`▶` / `⏸`**: toggle play/pause
+- **`■`**: stop (seek a 0, pausa)
 
-Il cue point può essere spostato cliccando sulla waveform nel punto desiderato mentre il deck è in pause.
+### 6.8 HOT CUE 1-8 + banchi A/B/C/D
 
-### 6.7 HOT CUE
+Griglia `1 2 3 4 / 5 6 7 8` con header `HOT CUE` + `CLR` e selettore banchi `A B C D`.
 
-Griglia di **8 pulsanti numerati (1-8)** con sopra `HOT CUE` e `CLR`, più un selettore `A B C D` che permette 4 banchi da 8 = 32 hot cue in totale.
+Verificato implementato:
 
-**Uso previsto:**
-- Click su un pulsante numero **vuoto** durante il play → memorizza il tempo corrente come hot cue
-- Click su un pulsante **con hot cue memorizzato** → salta a quel punto
-- **Click su `CLR`** + click su un hot cue → cancella quel hot cue
-- **Banchi A/B/C/D**: cambiano il set degli 8 hot cue attivi (A = primo set, B = secondo, ecc.)
+- **Click su uno slot vuoto**: memorizza la posizione corrente come cue point. Range valido: posizione tra 0 e durata del brano
+- **Click su uno slot con cue memorizzato**: seek alla posizione, avvia play se non già in play
+- **Banchi A/B/C/D**: quattro set da 8 cue = **32 hot cue totali per deck**
 
-> ⚠️ **Nota versione corrente**: gli hot cue sono UI fittizia in questa build — click visibili ma senza handler audio. Implementazione in roadmap. Lo stesso vale per LOOP, IN/OUT, JUMP.
+Il pulsante `CLR` seguito da un numero cancella quel hot cue (UI presente, handler nel bundle).
 
-### 6.8 LOOP
+### 6.9 LOOP engine — implementato
 
-Sotto gli hot cue, barra LOOP con valori in frazioni di battuta:
+Verificato nel bundle come `class Ue` (LoopEngine). Ha questi metodi reali:
 
-`1/4 | 1/2 | 1 | 2 | 4 | 8 | 16`
+- **Barra LOOP** con `1/4 | 1/2 | 1 | 2 | 4 | 8 | 16`: click chiama `autoLoop(beats)` che calcola la durata in secondi dal BPM e crea un loop dalla posizione corrente
+- **`IN`**: chiama `setLoopIn()` — memorizza la posizione come inizio loop (o resetta se premuto due volte)
+- **`OUT`**: chiama `setLoopOut()` — imposta la fine del loop e lo attiva; se OUT è prima di IN, corregge automaticamente
+- **`LOOP`**: chiama `toggleLoop()` — enter/exit del loop corrente
+- **`◀◀`**: chiama `halve()` — dimezza la durata del loop attivo
+- **`▶▶`**: chiama `double()` — raddoppia la durata
 
-- Click su un valore → imposta la lunghezza del loop in battute
-- Pulsante **`IN`**: marca l'inizio del loop
-- Pulsante **`OUT`**: marca la fine del loop e lo attiva
-- Pulsante **`LOOP`**: attiva/disattiva il loop corrente
-- Pulsanti **`◀◀ ▶▶`**: dimezza o raddoppia la lunghezza del loop attivo
+Il loop usa un `requestAnimationFrame` continuo per controllare quando `position >= loopOut` e fare seek a `loopIn` (`_startLoopCheck`).
 
-### 6.9 JUMP
+### 6.10 JUMP
 
-Sotto LOOP, barra JUMP con valori `◁1 | 1▷ | ◁2 | 2▷`:
+Barra con pulsanti per saltare di battute intere. Cablati via **`beatJump(n)`** del LoopEngine (da tastiera: ← / → / ↓ / ↑ saltano di 1 beat — vedi sezione shortcut).
 
-- `◁1`: salta indietro di 1 battuta
-- `1▷`: salta avanti di 1 battuta
-- `◁2`: salta indietro di 2 battute
-- `2▷`: salta avanti di 2 battute
+### 6.11 LOAD FILE / FROM LIBRARY
 
-> ⚠️ **Stato**: in UI ma non attivo.
-
-### 6.10 SCRATCH (solo deck B nell'interfaccia corrente)
-
-In alto al jog del deck B appare `● SCRATCH`. Quando attivo, il jog wheel diventa una superficie da scratch: la riproduzione segue il movimento del dito/mouse in tempo reale, con effetto di pitch-bend istantaneo in entrambe le direzioni.
+Due pulsanti in basso nel deck. `LOAD FILE` apre il file picker. `FROM LIBRARY` carica il brano attualmente selezionato nella library.
 
 ---
 
 ## 7. Mixer centrale
 
-La colonna centrale concentra tutti i controlli di missaggio tra i due deck.
+### 7.1 Display BPM e Δ
 
-### 7.1 Display BPM
-
-In alto nel mixer: `90.0 BPM 92.2` con sotto `Δ 2.2`.
-
-- **Primo numero** = BPM **effettivo** del deck A (include il pitch)
-- **Secondo numero** = BPM effettivo del deck B
-- **Δ** = differenza assoluta tra i due BPM
-
-Grazie all'overlay Beatmatch questi valori si aggiornano live al variare del pitch.
+In alto: i due BPM effettivi e la loro differenza. Con il patch overlay Beatmatch il display segue il pitch corrente (vedi sezione 10).
 
 ### 7.2 PHASE meter
 
-Sotto il BPM: barra orizzontale con un pallino colorato e un valore numerico (es. `-19`, `+45`).
+Indica lo sfasamento tra i beat dei due deck. Pallino centrato = in fase. Il testo **`✓ IN SYNC`** appare quando il delta è sotto 0.1; altrimenti viene mostrato `Δ <valore>` in arancione.
 
-Indica **di quanto il beat del deck B è sfasato rispetto al deck A**:
+### 7.3 Canali A e B — fader verticali
 
-- **Pallino al centro (valore ≈ 0)** → i beat sono allineati ✅
-- **Pallino a destra (valore positivo)** → deck B è in **anticipo** rispetto ad A
-- **Pallino a sinistra (valore negativo)** → deck B è in **ritardo** su A
+Ogni canale ha 4 fader impilati dall'alto in basso:
 
-Si corregge con il **NUDGE** del deck B o con un micro-aggiustamento del pitch.
+- **`HI`** — EQ banda alta (BiquadFilter `highshelf`, frequenza 4 kHz)
+- **`MID`** — EQ banda media (BiquadFilter `peaking`, frequenza 1 kHz, Q=1)
+- **`LO`** — EQ banda bassa (BiquadFilter `lowshelf`, frequenza 200 Hz)
+- **`GAIN`** — volume del canale dopo gli EQ
 
-### 7.3 Canali A e B
+Verificato nel bundle:
 
-Due colonne di fader verticali con testo `A` e `B` in alto, colori blu (A) e verde (B).
+- **Range EQ**: gain da **-12 a +12 dB**, step 0.5
+- **Range GAIN**: da 0 a 1, step 0.01
+- **Valore iniziale gain**: 0.8
 
-Ogni canale ha 4 fader in sequenza verticale:
+### 7.4 Crossfader A↔B
 
-1. **HI** — taglia/boost delle **alte frequenze** (cymbals, hi-hat, armonici). Range ±24 dB tipico
-2. **MID** — banda **medi** (voce, chitarre, snare)
-3. **LO** — **bassi** (kick, sub). Il fader più importante per il mixaggio pulito
-4. **GAIN** — volume generale del canale **prima degli EQ**. Si usa per bilanciare il livello dei due brani (alcuni sono masterizzati più forti di altri)
-
-Il valore numerico accanto a ogni fader indica il valore corrente in dB o unità relative.
-
-> 💡 **Trucco EQ-swap**: per una transizione pulita tra due brani, tira giù il LO del brano uscente mentre alzi il LO del brano entrante. Evita che due kick si pestino creando fango sonoro.
-
-### 7.4 Crossfader A↔B / CENTER
-
-Slider orizzontale in basso nel mixer con ai lati le lettere `A` e `B`.
-
-- **Tutto a sinistra**: solo deck A, deck B muto
-- **Tutto a destra**: solo deck B, deck A muto
-- **Centro (CENTER)**: entrambi i deck al 100%
-- Posizioni intermedie: miscela lineare tra i due
-
-Il pulsante `CENTER` riporta lo slider esattamente al centro.
-
-### 7.5 AudioMeter del Master
-
-Il livello complessivo del master in uscita è riflesso dall'**icona audio della tab del browser** e implicitamente dal volume di sistema.
+Slider orizzontale in basso, range 0–1 step 0.01. Etichette `A` e `B` ai lati, `CENTER` al centro.
 
 ---
 
 ## 8. Effetti — COLOR FX e BEAT FX
 
-Nella barra in basso, sotto i deck, due blocchi di effetti in serie sul master.
+### 8.1 COLOR FX (4 slot sempre attivi)
 
-### 8.1 COLOR FX
+Lista verificata nel bundle (array `Kn`):
 
-Filtri colore sul segnale in uscita. Visibili a sinistra:
+| ID | Label | Colore |
+|---|---|---|
+| `reverb` | **REVERB** | viola |
+| `delay` | **DELAY** | arancione |
+| `filter` | **FILTER** | blu |
+| `flanger` | **FLANGER** | ciano |
 
-| Nome | Descrizione |
+Ogni slot ha uno slider 0–100% che controlla il wet. Handler: `b.fx.setWet(id, value)`. I quattro effetti sono sempre "in linea", si attivano alzando lo slider.
+
+### 8.2 BEAT FX (9 effetti, uno selezionabile)
+
+Lista verificata (array `_e`):
+
+| ID | Label |
 |---|---|
-| **DELAY** | Ritardo con feedback. % indica il wet |
-| **FILTER** | Filtro passa-alto / passa-basso. Slider centrale = neutro, verso sx = LPF, verso dx = HPF |
-| **FLANGER** | Modulazione flanger. % = intensità |
+| `delay` | DELAY |
+| `echo` | ECHO |
+| `pingpong` | PING PONG |
+| `reverb` | REVERB |
+| `filter` | FILTER |
+| `flanger` | FLANGER |
+| `phaser` | PHASER |
+| `roll` | ROLL |
+| `trans` | TRANS |
 
-Ogni effetto ha uno slider continuo (0-100%) e un valore numerico. L'etichetta gialla indica l'effetto selezionato.
+**Divisioni ritmiche** (array `In`):
 
-### 8.2 BEAT FX
-
-Effetti ritmici sincronizzati al BPM. Visibili a destra:
-
-| Nome | Descrizione |
+| Label | Valore |
 |---|---|
-| **DELAY** | Ritardo sincronizzato a beat |
-| **ECHO** | Eco più lungo con decadimento |
-| **PING PONG** | Ritardo che alterna tra canale sx e dx |
-| **REVERB** | Riverbero a coda variabile |
-| **FILTER** | Filtro risonante |
-| **FLANGER** | Flanger sincronizzato |
-| **PHASER** | Phaser 4-stadi |
-| **ROLL** | Loop a battute che si divide progressivamente |
-| **TRANS** | Transformer (gate ritmico) |
+| `1/8` | 0.125 |
+| `1/4` | 0.25 |
+| `1/2` | 0.5 |
+| `1` | 1.0 |
+| `2` | 2.0 |
+| `4` | 4.0 |
 
-**Selezione della durata**: `1/8 | 1/4 | 1/2 | 1 | 2 | 4` (frazioni di battuta).
+Valore di default: `1` (1 beat).
 
-**`70%`** = wet amount (percentuale segnale processato).
+**Controlli**:
+- Slider wet 0-100% (default 70%)
+- Pulsante **`ON`**: enable/disable
 
-**`ON`** = pulsante enable/disable. Attivo quando acceso blu.
-
-Solo un BEAT FX e un COLOR FX alla volta sono attivi. Si selezionano cliccando il nome.
+Handler reali: `b.beatFX.setEffect(id, wet)`, `b.beatFX.setBeatDiv(value)`, `b.beatFX.setWet(wet)`, `b.beatFX.off()`.
 
 ---
 
-## 9. Pannello Beatmatch (overlay)
+## 9. Scorciatoie da tastiera
 
-Overlay aggiuntivo che aggiunge tre capacità:
+**Estratte dal codice** del bundle (funzione `ts`). Le shortcut sono ignorate se il focus è su `<input>` o `<textarea>`.
 
-1. Visualizza i **BPM effettivi** aggiornati al variare del pitch (il display integrato non lo fa)
-2. Fornisce un **SYNC automatico** bidirezionale che allinea il tempo dei due deck
-3. È **draggable** e **collassabile**, con posizione salvata
+### 9.1 Globali
 
-### 9.1 Struttura del pannello
-
-Pannello nero con bordo blu. Header in alto con `BEATMATCH`, valore `Δ` compatto e freccia `▾/▸` per collassare.
-
-Corpo (quando espanso):
-
-```
-Deck A            91.50 (+1.7%)
-Deck B            91.50
-Δ effettivo       0.00
-[ SYNC B→A ] [ SYNC A→B ]
-```
-
-### 9.2 Spostare il pannello
-
-Click + trascinamento **sull'header** (area con scritta "BEATMATCH") → muovi il pannello ovunque. Il rilascio salva la posizione in `localStorage` del browser. Alla successiva apertura, ritrovi il pannello nel punto in cui l'hai lasciato.
-
-### 9.3 Collassare
-
-Click sulla freccia **`▾`** in alto a destra del pannello → si comprime, lasciando solo l'header visibile con il `Δ` corrente. Click di nuovo sulla freccia **`▸`** → si espande. Stato salvato in localStorage.
-
-### 9.4 Uso del SYNC
-
-**Prerequisito**: entrambi i deck devono essere in PLAY (altrimenti i pulsanti sono disabilitati).
-
-- **`SYNC B→A`**: calcola il playbackRate del deck B necessario per portarlo al BPM effettivo del deck A. Lo applica **istantaneamente** al BufferSource. Dopo il click: `Δ effettivo: 0.00`
-- **`SYNC A→B`**: viceversa, porta A al BPM di B
-
-Il SYNC allinea il **tempo** (BPM identici) ma **non la fase** (beat 1 allineati). Per allineare la fase:
-
-1. Premi STOP sul deck entrante
-2. Conta i beat del deck master ("1-2-3-4-1-2-3-4...")
-3. Sul beat 1 successivo, PLAY sul deck entrante
-4. Osserva il PHASE meter: se non centrato, usa NUDGE per correggere
-
-### 9.5 Limitazioni
-
-- Il SYNC scrive direttamente sul `playbackRate` del BufferSource, bypassando lo slider PITCH visivo. Dopo un SYNC lo slider può essere disallineato dal rate reale. **Reset**: STOP + PLAY del deck interessato riparte con playbackRate=1.0
-- Se il BPM analizzato automaticamente è errato (es. rilevato a metà o doppio), anche il SYNC sarà errato. In tal caso usa il pitch manuale
-
----
-
-## 10. Registratore WAV (overlay)
-
-Overlay che registra il mix completo in uscita (tutto quello che senti nei tuoi altoparlanti) come file WAV stereo 16-bit.
-
-### 10.1 Struttura del pill
-
-In basso a destra: pannello nero con bordo giallo, contenente:
-
-- Pallino indicatore (grigio = idle, rosso lampeggiante = recording)
-- Timer `mm:ss`
-- Pulsante **`● REC`** (giallo) / **`■ STOP`** (rosso)
-
-### 10.2 Come registrare
-
-1. Carica e fai partire i brani come faresti in un mix normale
-2. Quando vuoi iniziare, click su **`● REC`**
-3. Il pulsante diventa rosso `■ STOP`, il timer inizia a scorrere, il pallino lampeggia
-4. Mixa normalmente — il recorder cattura **tutto quello che esce dal master**: deck A, deck B, crossfader, EQ, effetti
-5. Al termine click su **`■ STOP`**
-6. Parte automaticamente il download di un file chiamato:
-
-   ```
-   djapp-mix-2026-04-17T22-34-12.wav
-   ```
-
-### 10.3 Caratteristiche del file WAV
-
-- **Formato**: WAV PCM non compresso
-- **Canali**: stereo (2 canali)
-- **Profondità**: 16-bit
-- **Sample rate**: quella dell'AudioContext del browser (44.1 kHz o 48 kHz, tipicamente)
-- **Dimensione**: circa **10 MB per minuto** a 48 kHz
-
-### 10.4 Limitazioni del recorder
-
-- **Solo audio del browser**: il microfono e altre sorgenti di sistema **non** vengono registrati
-- **Memoria**: per set molto lunghi (> 60 minuti) la RAM del browser può esaurirsi. In quel caso l'app può diventare lenta o bloccarsi. Raccomandato per set di **max 30-45 minuti continui**
-- **Pausa non supportata**: una sessione REC→STOP produce un file. Per concatenare sessioni si tagliano e incollano in un editor esterno (Audacity, Reaper, DAW)
-
----
-
-## 11. Scorciatoie da tastiera
-
-djApp include un sistema di shortcuts per il controllo rapido da laptop.
-
-| Tasto | Azione (tipica) |
+| Tasto | Azione |
 |---|---|
-| `Spazio` | Play/Pause del deck focalizzato |
-| `Q` | Cue deck A |
-| `E` | Cue deck B |
-| `1` – `8` | Hot cue 1-8 del deck focalizzato (quando implementati) |
-| `Shift + 1-8` | Memorizza hot cue |
-| `←` / `→` | Nudge deck focalizzato |
-| `↑` / `↓` | Incrementa / decrementa pitch |
-| `A` / `B` | Seleziona deck attivo per scorciatoie |
-| `R` | Start/Stop registrazione (shortcut overlay) |
+| `?` | Mostra/nascondi pannello help |
+| `Escape` | Stop entrambi i deck |
 
-> ⚠️ **Nota**: il set esatto degli shortcut attivi dipende dalla versione. Per verificare, apri djApp e premi `?` (se presente il tooltip). In assenza di help integrato, prova i tasti sopra per capire cosa è attivo nella tua build.
+### 9.2 Deck A
+
+| Tasto | Azione |
+|---|---|
+| `Spazio` | Play / Pause |
+| `Z` | Cue |
+| `←` | Jump back 1 battuta |
+| `→` | Jump forward 1 battuta |
+| `Q` | KEY down (abbassa tonalità, min -6) |
+| `E` | KEY up (alza tonalità, max +6) |
+| `1` – `8` | Hot cue 1-8 (senza Cmd/Ctrl/Alt) |
+
+### 9.3 Deck B
+
+| Tasto | Azione |
+|---|---|
+| `Enter` | Play / Pause |
+| `M` | Cue |
+| `↓` | Jump back 1 battuta |
+| `↑` | Jump forward 1 battuta |
+| `O` | KEY down |
+| `P` | KEY up |
+| `F1` – `F8` | Hot cue 1-8 |
 
 ---
 
-## 12. Workflow completo — mixare due brani
+## 10. Overlay aggiuntivi — Recorder WAV e Beatmatch
 
-Questa è la procedura passo-passo per mixare due brani, dall'inserimento in deck fino alla transizione finita e alla registrazione del risultato.
+Due overlay JavaScript vanilla sono caricati **prima del bundle React** e aggiungono funzionalità.
 
-### 12.1 Preparazione
+### 10.1 Recorder WAV (`recorder.js`)
 
-1. Carica **Brano A** sul deck A (drag-and-drop o LOAD FILE). Attendi che la waveform sia disegnata e il BPM rilevato
-2. Carica **Brano B** sul deck B allo stesso modo
-3. Imposta il **crossfader in posizione A** (tutto a sinistra)
-4. Metti il **volume canale A al 100%**, **volume canale B a 0%** (o tieni il canale B in cue cuffia se hai uscite separate)
-5. Attiva il pannello **Beatmatch**: dovrebbe già essere visibile. Se collassato, click sulla freccia per espanderlo
+Pill nero con bordo giallo `#e8ff47` in **basso a destra**.
 
-### 12.2 Preascolto
+Funzionamento: intercetta `AudioContext.prototype.constructor` e `AudioNode.prototype.connect`, inserisce un tap `GainNode` sul master, da lì cattura via AudioWorklet i sample stereo Float32 che vengono codificati in **WAV PCM 16-bit stereo** alla sample rate dell'AudioContext (tipicamente 48 kHz su Chrome, 44.1 kHz su Safari).
 
-1. **PLAY su deck A** — il pubblico sente A
-2. **PLAY su deck B** con crossfader ancora tutto a sinistra — tu senti B in pre-fader se hai monitor; altrimenti, in assenza di monitor separato, alza momentaneamente il volume canale B solo per ascoltare
-3. Nota il BPM di B rispetto ad A nel pannello Beatmatch
+**Uso**: click `● REC` → mixa → click `■ STOP` → download automatico del file `djapp-mix-YYYY-MM-DDTHH-MM-SS.wav`.
 
-### 12.3 Beatmatching — pareggia il tempo
+**Limiti**:
+- Solo audio del browser (non microfono o sistema)
+- Memoria: set > 60 min può saturare la RAM del browser
+- Registra **tutto il master**: deck, EQ, effetti, crossfader
 
-Hai due strade.
+### 10.2 Beatmatch (`beatmatch.js`)
 
-**Strada A — SYNC automatico (rapido):**
+Pannello draggable con bordo blu.
 
-Con entrambi i deck in PLAY, nel pannello Beatmatch click su **`SYNC B→A`**. Il BPM di B viene portato al BPM effettivo di A. `Δ effettivo: 0.00`. Fatto.
+**Funzione 1** — **Display BPM effettivo**: aggiorna i numeri `90.0 / 92.2 / Δ` nel Mixer centrale in base al `playbackRate` corrente di ogni deck (il display nativo mostra il BPM originale analizzato, non quello effettivo).
 
-**Strada B — pitch manuale (classico):**
+**Funzione 2** — Pulsanti `SYNC B→A` e `SYNC A→B`: allineano il tempo bypassando lo slider PITCH visivo.
 
-Muovi lo slider PITCH del deck B finché il suo BPM effettivo (letto nel pannello Beatmatch) coincide con quello di A. Esempio: A = 90.00, B = 92.20 → pitch B a circa -2.4% → B ora è 90.05. Sufficiente.
+> ⚠️ **Nota importante**: il pulsante `⇌ SYNC` integrato nel deck è **più potente** dell'overlay Beatmatch perché allinea anche la **fase** (non solo il tempo). Per un sync completo usa il SYNC integrato. L'overlay Beatmatch è utile quando vuoi vedere i BPM effettivi in tempo reale mentre manovri il pitch manualmente.
 
-### 12.4 Allineamento della fase
+**UI del pannello**:
+- Header trascinabile (click + drag)
+- Freccia `▾ / ▸` per collassare
+- Posizione e stato collapsed salvati in `localStorage`
 
-Tempi uguali, ma i beat 1 dei due brani non sono allineati — ora si risolve.
+---
 
-1. **STOP** su deck B (non lo togli dal mix, lo azzeri sul cue point)
-2. Ascolta deck A e **conta le battute ad alta voce**: "1, 2, 3, 4, 1, 2, 3, 4..." sul kick della cassa
-3. Scegli un momento in cui comincia una frase musicale di 8 o 16 battute (es. dopo un break)
-4. Sul conteggio "**1**" di quella frase, premi **PLAY** su deck B
-5. Guarda il **PHASE meter** centrale:
-   - Pallino centrato → sei in fase ✅
-   - Pallino a destra → B in anticipo, ruota il **jog wheel di B in senso antiorario** per farlo rallentare momentaneamente
-   - Pallino a sinistra → B in ritardo, **jog orario** per accelerare
-6. Correzioni piccole e continue finché il pallino resta stabile al centro
+## 11. Workflow completo — mixare due brani
 
-### 12.5 Transizione con EQ-swap
+Procedura verificata su bundle reale, usando le feature che **funzionano davvero**.
 
-Ora i due brani suonano insieme, sincronizzati in tempo e fase, ma il pubblico sente solo A (crossfader a sinistra, volume B a 0). Fai la transizione in ~16-32 battute:
+### 11.1 Preparazione
 
-1. Battute 1-4: **abbassa LO canale A** (bassi di A), **alza LO canale B** (bassi di B). Ora i bassi vengono dal brano B ma il resto da A
-2. Battute 5-12: **alza gradualmente il volume canale B** fino al 100%
-3. Battute 13-20: **inizia a spostare il crossfader verso B** (o abbassa volume canale A se non usi il crossfader)
-4. Battute 21-32: crossfader completamente su B, volume canale A a 0. Transizione completata
-5. **Azzera gli EQ di A** (LO di A torna al centro, pronta per un nuovo brano quando A sarà di nuovo il deck entrante)
+1. Carica **Brano A** sul deck A (drag&drop o `LOAD FILE`)
+2. Attendi l'analisi BPM (~2-5 secondi)
+3. Carica **Brano B** sul deck B
+4. Crossfader tutto a sinistra (posizione `A`)
+5. Canale A volume 100%, canale B volume 0
+6. EQ di entrambi i canali al centro (0 dB)
 
-### 12.6 Registrazione
+### 11.2 Beatmatching automatico (consigliato)
 
-Puoi registrare tutta la sessione:
+1. PLAY su deck A
+2. PLAY su deck B (con volume a 0, si sente solo A)
+3. Click **`⇌ SYNC`** sul deck B → il deck B viene allineato **in tempo E fase** al deck A automaticamente
 
-1. Premi **`● REC`** all'inizio, prima di lanciare il primo brano
+Il pulsante SYNC diventa evidenziato. L'indicatore PHASE deve mostrare **`✓ IN SYNC`**.
+
+### 11.3 Beatmatching manuale (alternativa)
+
+1. Sposta il PITCH del deck B finché il BPM effettivo coincide con quello di A (uso il pannello Beatmatch overlay per vedere il BPM effettivo)
+2. Allinea la fase:
+   - Premi `M` (cue deck B) per riposizionare
+   - Al beat 1 del deck A, premi `Enter` per far partire B
+   - Osserva il PHASE meter
+   - Correggi con il jog (modalità NUDGE): senso orario se B in ritardo, antiorario se in anticipo
+
+### 11.4 Transizione con EQ swap
+
+Circa 16–32 battute:
+
+1. **Battute 1-4**: abbassa gradualmente `LO` del canale A (toglie i bassi di A), alza `LO` del canale B fino al centro (inserisce i bassi di B). I kick non si pestano più
+2. **Battute 5-12**: alza gradualmente il volume GAIN del canale B fino al 100%
+3. **Battute 13-20**: muovi il crossfader da A verso B
+4. **Battute 21-32**: crossfader tutto su B, volume canale A a 0, EQ A resettati
+
+### 11.5 Registrazione
+
+Usa l'overlay Recorder:
+
+1. Prima di iniziare la sessione, click `● REC`
 2. Mixa normalmente
-3. Premi **`■ STOP`** alla fine — scarica il WAV
-4. Apri il file in QuickTime, VLC, o in una DAW (Audacity, Reaper, Logic, Ableton) per verificare, editare, normalizzare, esportare in MP3
+3. Alla fine click `■ STOP` → scarica il `.wav`
 
 ---
 
-## 13. Uso su mobile
+## 12. Uso su mobile
 
-### 13.1 Android
+### 12.1 Touch
 
-- Tutto funziona in modalità portrait o landscape
-- Consigliato **landscape** per avere i due deck affiancati come sul desktop
-- Il jog wheel si usa con trascinamento del dito
-- **Audio**: tramite cuffie Bluetooth la latenza può essere alta (100-300ms), meglio cuffie cablate via USB-C o jack 3.5mm se disponibile
+Il jog wheel è **multitouch reale**. Su iPhone e iPad due dita possono manovrare contemporaneamente due jog diversi. Ogni touch è mappato al proprio deck tramite `elementFromPoint` al momento di `touchstart` e rimane legato a quel deck per tutta la gesture.
 
-### 13.2 iPhone / iPad
+### 12.2 Tabs mobile
 
-- **Safari obbligatorio** (vedi sezione 3.5)
-- Su iPhone lo schermo è stretto — alcune sezioni si impilano verticalmente con scroll
-- **iPad**: esperienza molto vicina al desktop, consigliato per l'uso reale
-- **Audio**: cuffie con jack o Lightning per latenza bassa. Bluetooth introduce ~200ms di latenza che rende difficile il beatmatching manuale
-- **Recorder WAV**: funziona ma con sample rate diverso (tipicamente 44.1 kHz) e qualità leggermente inferiore rispetto a Chrome desktop
+Su schermi stretti, sotto la barra effetti appaiono 4 tab: `◉ DECK A`, `⇌ MIXER`, `◉ DECK B`, `♪ LIBRARY`. Si tocca per cambiare sezione.
 
-### 13.3 Limitazioni comuni a tutti i mobile
+### 12.3 Limiti iOS
 
-- **Sleep del browser**: se il telefono va in sleep, l'AudioContext viene sospeso. Il mix si interrompe. Tenere lo schermo acceso durante il set (attivare "mantieni schermo acceso" nelle impostazioni)
-- **Notifiche e chiamate**: una chiamata in arrivo interrompe l'audio. Abilitare la modalità "Non disturbare" prima del set
-- **Multitasking**: Safari iOS può scaricare la tab se vai su un'altra app per troppo tempo. Tenere djApp sempre in primo piano
+- `playbackRate` limitato a `[0.5, 4.0]` dal browser — scratch estremi vengono clampati
+- Keep-awake: tieni lo schermo acceso durante un set
+- Notifiche / chiamate interrompono l'AudioContext — attiva "Non disturbare"
+
+### 12.4 Limiti Android
+
+- Cuffie Bluetooth introducono latenza (100–300 ms): per beatmatching usa cuffie cablate USB-C o jack
+- Chrome Android supporta nativamente l'installazione PWA
+
+---
+
+## 13. Auto-aggiornamento PWA
+
+Verificato nel bundle: l'app registra il Service Worker, controlla aggiornamenti ogni **30 minuti**, e quando ne rileva uno mostra un **banner flottante centrato in basso**:
+
+```
+◉  Nuova versione disponibile   [AGGIORNA]
+```
+
+Click su `AGGIORNA` → il SW invia `SKIP_WAITING` al worker in attesa, la pagina si ricarica automaticamente, versione aggiornata.
+
+Se non vedi il banner ma vuoi forzare l'aggiornamento: chiudi tutte le tab di djApp, attendi 1 minuto, riapri.
 
 ---
 
 ## 14. Risoluzione problemi
 
-### 14.1 Chrome non mostra l'icona "Installa"
+### 14.1 Chrome non offre l'install PWA
 
-**Cause probabili:**
-1. Service Worker non registrato o in errore
-2. Manifest con `start_url` o `scope` errati
-3. Icone 192/512 non caricate
+DevTools → `Application` → `Manifest`: controlla che `start_url` e `scope` siano `/djapp-new/`. Chrome elenca i problemi in fondo al pannello.
 
-**Soluzione**: apri DevTools (`Cmd+Opt+I` o `F12`) → tab **Application** → **Manifest**. Chrome elenca in basso i requisiti mancanti. Correggere e svuotare cache (`Clear site data`).
+### 14.2 Audio assente o distorto
 
-### 14.2 Audio distorto o silenzioso
+- Verifica `● READY` verde nell'header
+- Controlla volume sistema
+- GAIN canale: se troppo alto con brani masterizzati forte, abbassa a ~0.6
 
-- Controllare che il volume master del sistema non sia a 0 o muto
-- Verificare che l'AudioContext sia attivo: l'indicatore `● READY` in alto a destra deve essere verde
-- Alcuni brani con livello di picco molto alto saturano sommati — abbassare GAIN di un canale
+### 14.3 BPM rilevato errato (es. metà o doppio)
 
-### 14.3 Deck A e B invertiti nel pannello Beatmatch
+L'analyzer normalizza in 80–160 BPM. Per brani fuori range (es. drum'n'bass a 170 BPM rilevato come 85, o reggaeton a 90 rilevato come 180), il display è sbagliato.
 
-Se il PITCH di un deck muove il BPM dell'altro nel pannello, il mapping è sbagliato. **Workaround**: STOP + PLAY di entrambi i deck nell'ordine corretto (prima A, poi B) per riarmare il mapping.
+Workaround: usa pitch manuale + orecchio, oppure carica e ricontrolla.
 
-### 14.4 Service Worker blocca gli aggiornamenti
+### 14.4 SYNC non funziona
 
-Dopo una modifica del codice, Chrome può continuare a servire la versione vecchia dalla cache del SW.
+Serve che **entrambi i deck abbiano un BPM rilevato > 0**. Se un brano non ha BPM (analisi fallita), il SYNC viene ignorato. Controllare che il display mostri un numero, non `—.—`.
 
-**Soluzione:**
-1. DevTools → Application → Service Workers → **`Unregister`**
-2. Application → Storage → **`Clear site data`**
-3. Chiudere la tab
-4. Riaprire l'URL
+### 14.5 Service Worker blocca aggiornamenti
 
-### 14.5 Il recorder produce un WAV vuoto o corrotto
+DevTools → `Application` → `Service Workers` → `Unregister`. Poi `Application` → `Storage` → `Clear site data`. Ricarica.
 
-- Non chiudere la tab prima di aver premuto STOP
-- Se il set è stato molto lungo (> 60 min), la memoria può essere stata saturata
-- Su iOS/Safari: verificare che AudioWorklet sia supportato. Safari 17+ lo supporta parzialmente
+### 14.6 Shortcut tastiera non rispondono
 
-### 14.6 Brani MP3 con BPM rilevato sbagliato
-
-L'algoritmo di rilevamento lavora su un'analisi onset-based. Per alcuni generi (ambient, classica, brani con pochi kick) può fallire. In quel caso:
-
-- Inserire manualmente il BPM corretto se l'interfaccia lo consente
-- Oppure usare il pitch manuale senza fidarsi del display
+Verifica che il focus non sia su un campo di input/textarea. Le shortcut vengono ignorate in quel caso.
 
 ---
 
 ## 15. Note tecniche
 
-### 15.1 Stack tecnologico
+### 15.1 Stack verificato
 
-- **Frontend**: React 18 + Vite
-- **Audio**: Web Audio API nativa (no librerie audio esterne)
-- **Sorgenti**: AudioBufferSourceNode per ogni deck
-- **BPM detection**: Web Worker dedicato (`bpmDetector.worker`)
-- **Bundling**: Vite → output in `assets/`
-- **Service Worker**: strategia cache-first per shell, network-first per HTML, **bypass totale** per range requests, audio, blob, video (necessario per evitare interruzioni audio su Chrome)
-- **Overlay Recorder e Beatmatch**: JavaScript vanilla puro, caricati prima del bundle React via monkey-patch di `AudioContext`
+- **React 18.3.1** + **Vite 5.4** + **Zustand 4.5.2** + Web Audio API nativa
+- Dipendenze dev: `@vitejs/plugin-react`
+- Bundle diviso via `manualChunks`: `react-core`, `zustand`, `index` (app)
+- Base path build: `/djapp/` (il sito è servito da `/djapp-new/`, il manifest è stato corretto per allineare `start_url` e `scope`)
 
-### 15.2 Sample rate e latenza
+### 15.2 Audio engine
 
-| Browser | Sample rate tipico | Latenza tipica |
-|---|---|---|
-| Chrome Mac | 48 kHz | 20-40 ms |
-| Chrome Windows | 48 kHz | 30-50 ms |
-| Safari Mac | 44.1 kHz | 30-60 ms |
-| Safari iOS | 44.1 kHz | 40-100 ms |
-| Chrome Android | 48 kHz | 50-150 ms |
+- **AudioEngine** (singleton): AudioContext, master chain, routing globale
+- **DeckEngine** (per deck): buffer source, 3× BiquadFilter (LO/MID/HI), channelGain
+- **LoopEngine** (per deck): `loopIn`, `loopOut`, `beatLength` (60/BPM), `autoLoop`, `halve`, `double`, `beatJump`
+- **SyncEngine**: master/slave, phase alignment via micro-nudge
+- **FX**: ColorFX (4 slot sempre attivi) + BeatFX (9 effetti, 1 alla volta)
+- **BPM detector**: Web Worker con autocorrelazione su energia RMS
 
-### 15.3 Come funziona il SYNC dell'overlay
+### 15.3 Unlock AudioContext
 
-Il pannello Beatmatch intercetta `AudioContext.prototype.createBufferSource` e traccia ogni sorgente attiva. Al click di `SYNC B→A` calcola:
+L'AudioContext viene inizializzato al primo `pointerdown` sull'app (requisito autoplay policy di tutti i browser).
 
-```
-playbackRate_B = (BPM_originale_A × playbackRate_A) / BPM_originale_B
-```
+### 15.4 Overlay esterni
 
-E lo applica direttamente al BufferSource del deck B con `setValueAtTime(rate, currentTime)`. Il cambio è istantaneo e preciso a 4 decimali.
+I due overlay `recorder.js` e `beatmatch.js` sono JavaScript vanilla puro (no dipendenze), caricati da `<script src>` **prima del bundle React** in `index.html`. Funzionano intercettando `AudioContext.prototype` via class extension (recorder) o prototype chain (beatmatch).
 
-### 15.4 Privacy
+### 15.5 Privacy
 
-- **Nessun tracking**: djApp non invia dati a server esterni
-- **Nessun account**: non servono login o registrazioni
-- **I brani restano sul tuo dispositivo**: non vengono mai caricati su server
-- **Service Worker**: cache locale solo dell'interfaccia
+- Nessun tracking, nessun account
+- I brani restano sul dispositivo, non vengono mai caricati su server
+- Service Worker cacha solo l'interfaccia (shell + asset statici)
 
-### 15.5 Licenza e redistribuzione
+### 15.6 Licenza
 
-djApp è un progetto personale di Alessandro Pezzali sotto il brand PezzaliApp. La distribuzione e le modifiche seguono la licenza indicata nel repository GitHub `pezzaliapp/djapp-new`.
+Progetto personale di Alessandro Pezzali / PezzaliApp. Codice sul repository GitHub `pezzaliapp/djapp-new`.
 
-### 15.6 Supporto
+### 15.7 Supporto e feedback
 
-Per bug, segnalazioni, richieste di feature:
-
-- GitHub Issues: `https://github.com/pezzaliapp/djapp-new/issues`
+- Issue tracker: `https://github.com/pezzaliapp/djapp-new/issues`
 - Sito autore: `https://alessandropezzali.it`
 
 ---
 
 **Fine del manuale.**
 
-*Documento aggiornato al 17 aprile 2026.*
+*Documento verificato sul bundle `index-N51-MIQm.js` del commit corrente.*
+*Aggiornato al 17 aprile 2026.*
