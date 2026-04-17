@@ -12,7 +12,7 @@ monofont: "Courier New"
 
 # djApp — Manuale d'uso
 
-**Versione documento:** 2.0 (riscritto su bundle verificato)
+**Versione documento:** 2.1 (fact-checked + tutela/licenza/PezzaliApp)
 **App:** djApp by PezzaliApp
 **URL produzione:** [https://www.alessandropezzali.it/djapp-new/](https://www.alessandropezzali.it/djapp-new/)
 **Stack:** React 18 + Vite 5 + Web Audio API + Zustand
@@ -37,6 +37,9 @@ monofont: "Courier New"
 13. Auto-aggiornamento PWA
 14. Risoluzione problemi
 15. Note tecniche
+16. Tutela e privacy
+17. Licenza
+18. PezzaliApp
 
 ---
 
@@ -563,24 +566,175 @@ L'AudioContext viene inizializzato al primo `pointerdown` sull'app (requisito au
 
 I due overlay `recorder.js` e `beatmatch.js` sono JavaScript vanilla puro (no dipendenze), caricati da `<script src>` **prima del bundle React** in `index.html`. Funzionano intercettando `AudioContext.prototype` via class extension (recorder) o prototype chain (beatmatch).
 
-### 15.5 Privacy
+---
 
-- Nessun tracking, nessun account
-- I brani restano sul dispositivo, non vengono mai caricati su server
-- Service Worker cacha solo l'interfaccia (shell + asset statici)
+## 16. Tutela e privacy
 
-### 15.6 Licenza
+### 16.1 Dati trattati
 
-Progetto personale di Alessandro Pezzali / PezzaliApp. Codice sul repository GitHub `pezzaliapp/djapp-new`.
+djApp è progettato per funzionare **senza raccogliere alcun dato personale dell'utente**.
 
-### 15.7 Supporto e feedback
+| Categoria | Trattamento in djApp |
+|---|---|
+| Account utente | Nessuno. Non esistono registrazione né login |
+| Cookie di profilazione | Nessuno |
+| Cookie tecnici | Nessuno |
+| Tracking analytics | Nessuno (no Google Analytics, no Plausible, no Matomo) |
+| Dati di utilizzo inviati a server | Nessuno |
+| Dati biometrici | Nessuno |
+| Dati di pagamento | Nessuno. L'applicazione è gratuita |
 
-- Issue tracker: `https://github.com/pezzaliapp/djapp-new/issues`
-- Sito autore: `https://alessandropezzali.it`
+### 16.2 Cosa viene memorizzato localmente
+
+djApp utilizza esclusivamente la memoria del browser dell'utente, senza alcuna trasmissione a server esterni:
+
+- **Cache Service Worker**: solo i file statici dell'interfaccia (HTML, CSS, JS, icone). Serve per l'uso offline. Si svuota manualmente da DevTools → Application → Clear site data
+- **localStorage**: l'overlay Beatmatch salva la posizione del pannello e lo stato collassato (chiavi `djapp_bm_pos`, `djapp_bm_collapsed`). Nessun altro dato viene scritto
+- **AudioBuffer in RAM**: i brani caricati restano nella memoria del browser per la durata della sessione. Vengono rilasciati alla chiusura della tab
+
+### 16.3 Compatibilità normativa
+
+Nel momento in cui non vengono raccolti né trattati dati personali, djApp è conforme al **Regolamento Generale sulla Protezione dei Dati (GDPR, Regolamento UE 2016/679)**. L'installazione e l'uso non richiedono informative privacy né acquisizione di consensi, in quanto non vi è alcun titolare del trattamento per dati inesistenti.
+
+### 16.4 Diritti d'autore dei contenuti audio
+
+**Responsabilità dell'utente**. djApp è uno strumento tecnico: fornisce la capacità di mixare due tracce audio, ma non fornisce alcuna traccia musicale.
+
+L'utente è l'unico responsabile della legittimità dei contenuti che carica nell'applicazione. L'uso di brani protetti da copyright, l'esecuzione in pubblico, la trasmissione o la pubblicazione di remix e registrazioni richiedono titolo all'uso secondo la normativa vigente (diritti d'autore, diritti connessi SIAE/SCF in Italia, licenze sincronizzazione e simili).
+
+Il file WAV generato dall'overlay Recorder è un'opera derivata: la sua diffusione richiede che l'utente disponga dei diritti necessari per tutte le tracce mixate.
+
+### 16.5 Disclaimer
+
+djApp è fornito "così com'è" (*as is*), senza garanzie esplicite o implicite. L'autore non risponde per eventuali malfunzionamenti, perdita di dati, interruzioni audio durante eventi dal vivo, problemi di latenza, o qualsiasi altro danno diretto o indiretto derivante dall'uso dell'applicazione. L'utente si assume la responsabilità di verificare l'adeguatezza dello strumento al proprio caso d'uso.
+
+L'analisi BPM automatica è un ausilio basato su un algoritmo di autocorrelazione e può fornire valori errati su alcuni generi musicali: non va considerata una misura esatta.
+
+### 16.6 Sicurezza
+
+- Il protocollo HTTPS è obbligatorio per il funzionamento dell'AudioContext e garantisce trasmissione cifrata del bundle applicativo
+- Il Service Worker viene aggiornato automaticamente quando viene rilasciata una nuova versione
+- Non vengono caricate librerie di terze parti da CDN remoti in fase di runtime
+
+---
+
+## 17. Licenza
+
+djApp è distribuito sotto **MIT License**.
+
+```
+MIT License
+
+Copyright (c) 2024-2026 Alessandro Pezzali — PezzaliApp
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+**In sintesi pratica:**
+
+- ✅ Uso libero, personale e commerciale
+- ✅ Modifica e ridistribuzione consentite
+- ✅ Integrazione in progetti proprietari consentita
+- ⚠️ Obbligo di mantenere il copyright notice e il testo della licenza nelle copie
+- ⚠️ Nessuna garanzia — il software è fornito "così com'è"
+
+Il testo integrale della licenza si trova nel file `LICENSE` del repository GitHub.
+
+### 17.1 Librerie di terze parti
+
+djApp dipende dai seguenti componenti open-source, le cui licenze sono rispettate e compatibili con MIT:
+
+| Libreria | Licenza | Uso |
+|---|---|---|
+| React 18 | MIT | UI framework |
+| Vite 5 | MIT | Build tool |
+| Zustand 4.5 | MIT | State management |
+| Web Audio API | Standard W3C | Audio engine (nativa browser) |
+
+Nessuna delle librerie incluse richiede obblighi di copyleft (GPL, AGPL).
+
+---
+
+## 18. PezzaliApp
+
+**PezzaliApp** è il brand personale di Alessandro Pezzali, sotto il quale vengono sviluppati e distribuiti progetti open-source trasversali a più ambiti: software professionale per settori verticali, strumenti audio, fotografia, aerospaziale amatoriale, produttività.
+
+djApp fa parte dell'ecosistema PezzaliApp nella categoria **audio/musica**.
+
+### 18.1 Identità
+
+- **Sito ufficiale**: [alessandropezzali.it](https://alessandropezzali.it)
+- **Dominio brand**: [pezzaliapp.com](https://pezzaliapp.com)
+- **GitHub**: [github.com/pezzaliapp](https://github.com/pezzaliapp)
+
+PezzaliApp è una iniziativa personale autonoma, **non affiliata ad alcuna società o datore di lavoro** dell'autore. Tutti i progetti pubblicati sotto il brand sono realizzati nel tempo privato e distribuiti gratuitamente a beneficio della comunità open-source.
+
+### 18.2 Ecosistema dei progetti
+
+A titolo indicativo, altre applicazioni dell'ecosistema PezzaliApp disponibili pubblicamente:
+
+**Area audio e musica**
+
+- **Minimoog Model D emulator** — emulatore web del sintetizzatore analogico Moog
+- **Poly8 Synth** (Moog Muse emulator) — sintetizzatore polifonico PWA
+- **Helion Guitars — Double Cut S1** — emulatore di chitarra elettrica basato su sintesi Karplus-Strong
+
+**Area spazio / aerospace amatoriale**
+
+- **CubeSat Flight Management System** — sistema di gestione volo per satelliti CubeSat (`github.com/PezzaliStack/CubeSatV1`)
+- **PhotonExplorer** — pianificatore di missioni di volo drone
+
+**Area produttività e lavoro**
+
+- **CSVXpressPlus / CSVXpressSmart** — strumenti di elaborazione CSV e listini
+- **TriageFirst** — PWA di triage medico multilingue (22 lingue)
+
+**Area assistenza tecnica settoriale**
+
+- **TechAssist AI** — assistente tecnico per attrezzatura da officina
+- **GommistaPro-Assistant** — assistente AI per rivenditori di attrezzature per gommisti
+- **TireCheck Pro** — diagnostica pneumatici con AI vision
+
+Tutti i progetti seguono principi comuni: **PWA mobile-first**, architettura client-side, nessuna dipendenza da servizi cloud proprietari, codice leggibile e pubblicato su GitHub.
+
+### 18.3 Filosofia di design
+
+Gli applicativi PezzaliApp condividono alcune linee guida di design e implementazione:
+
+- **Dark theme** come default, con accenti ad alto contrasto (giallo `#e8ff47` per i prodotti audio/workshop, verde per i prodotti generici)
+- **Typography** a base monospaziale per le informazioni tecniche (BPM, valori numerici, percentuali)
+- **Mobile-first responsive**: ogni applicazione è progettata anche per schermo telefono
+- **Installabilità PWA** come priorità di primo livello
+- **Deploy semplice**: GitHub Pages o Cloudflare Pages, niente server backend
+
+### 18.4 Contributi e feedback
+
+djApp è un progetto aperto. Segnalazioni di bug, proposte di miglioramento e pull request sono benvenute tramite:
+
+- **Issue tracker**: [github.com/pezzaliapp/djapp-new/issues](https://github.com/pezzaliapp/djapp-new/issues)
+- **Pull request**: [github.com/pezzaliapp/djapp-new/pulls](https://github.com/pezzaliapp/djapp-new/pulls)
+
+Le roadmap future dell'applicazione sono documentate nel `README.md` del repository.
 
 ---
 
 **Fine del manuale.**
 
 *Documento verificato sul bundle `index-N51-MIQm.js` del commit corrente.*
-*Aggiornato al 17 aprile 2026.*
+*Versione 2.1 — aggiornata al 17 aprile 2026.*
